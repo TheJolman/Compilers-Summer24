@@ -22,6 +22,7 @@ typedef enum {
   a, b
 } transitions;
 
+// these functions apply a transition state
 states one_handler(transitions transition) {
   switch (transition) {
     case a: return two;
@@ -81,8 +82,9 @@ int main(int argc, char* argv[]) {
   states state = one;
   for (size_t i = 0; i < strlen(input) - 1; i++) {
     char ch = input[i];
-    // convert char to enum
-    transitions trans = (ch == 'a' ? a : b);
+    transitions trans = (ch == 'a' ? a : b); // convert char to enum
+
+    // apply relevant transition state
     switch (state) {
       case one:
         state = one_handler(trans);
