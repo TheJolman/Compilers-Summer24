@@ -1,16 +1,20 @@
+/* Prog1
+ * Joshua Holman
+ * June 8, 2024
+ * Summer 2024 CPSC 323
+ * */
+
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdbool.h>
 #include <string.h>
 
 typedef enum {
-  one_four, // starting state
-  two_four,
-  three_four_five,
-  four_six, // accepting state
-  four_five,
-  six, // accepting state
-  five,
+  one, // starting state
+  two,
+  three,
+  four, // accepting state
   dead
 } states;
 
@@ -18,53 +22,36 @@ typedef enum {
   a, b
 } transitions;
 
-states One_Four_Handler(transitions transition) {
+states one_handler(transitions transition) {
   switch (transition) {
-    case a: return two_four;
-    case b: return three_four_five;
+    case a: return two;
+    case b: return three;
   }
 }
-
-states Two_Four_Handler(transitions transition) {
+states two_handler(transitions transition) {
   switch (transition) {
-    case a: return four_six;
-    case b: return four_five;
+    case a: return two;
+    case b: return three;
   }
 }
-states Three_Four_Five_Handler(transitions transition) {
+states three_handler(transitions transition) {
   switch (transition) {
-    case a: return four_six;
-    case b: return four_five;
+    case a: return four;
+    case b: return three;
   }
 }
-states Four_Six_Handler(transitions transition) {
+states four_handler(transitions transition) {
   switch (transition) {
-    case a: return six;
-    case b: return five;
-  }
-}
-states Four_Five_Handler(transitions transition) {
-  switch (transition) {
-    case a: return six;
-    case b: return five;
-  }
-}
-states Six_Handler(transitions transition) {
-  switch (transition) {
-    case a: return six;
-    case b: return dead;
-  }
-}
-states Five_Handler(transitions transition) {
-  switch (transition) {
-    case a: return six;
-    case b: return dead;
+    case a: return four;
+    case b: return three;
   }
 }
 
 int main(int argc, char* argv[]) {
   if (argc != 2) {
-    fprintf(stderr, "Usage: %s <input_string>\n", argv[0]);
+    fprintf(stderr, "This program determines if a string from the alphabet {a, b} belongs to the language L = (a|b)*ba*a\n");
+    fprintf(stderr, "Please provide an appropriate string delimited with a '$'\n");
+    fprintf(stderr, "Usage example: %s aaba$\n", argv[0]);
     return EXIT_FAILURE;
   }
 
@@ -72,7 +59,13 @@ int main(int argc, char* argv[]) {
   bool valid = true;
 
   // validate input
-  for (size_t i = 0; i < strlen(input); i++) {
+  if (input[strlen(input) - 1] != '$') {
+    fprintf(stderr, "Input string must end with a '$'\n");
+    return EXIT_FAILURE;
+
+  }
+
+  for (size_t i = 0; i < strlen(input) - 1; i++) {
     char ch = input[i];
     if (ch != 'a' && ch != 'b') {
       valid = false;
@@ -82,44 +75,40 @@ int main(int argc, char* argv[]) {
   if (!valid) {
     fprintf(stderr, "Input string must consist of the letters 'a' and 'b'.\n");
     return EXIT_FAILURE;
-
   }
 
+  // string should be valid at this point
+  states state = one;
+  for (size_t i = 0; i < strlen(input) - 1; i++) {
+    char ch = input[i];
+    // convert char to enum
+    transitions trans = (ch == 'a' ? a : b);
+    switch (state) {
+      case one:
+        state = one_handler(trans);
+        break;
+      case two:
+        state = two_handler(trans);
+        break;
+      case three:
+        state = three_handler(trans);
+        break;
+      case four:
+        state = four_handler(trans);
+        break;
+      case dead:
+        break;
 
+    }
+  }
 
+  /*printf("End state: %d\n", state);*/
+  bool accepted = (state == four);
 
-
-  /*states next_state = one_four;*/
-  /**/
-  /*const size_t MAX = 5;*/
-  /*char buffer[MAX];*/
-  /**/
-  /**/
-  /*printf("Enter a string from the alphabet {a, b}: ");*/
-  /**/
-  /*while (true) {*/
-  /*  bool valid = true;*/
-  /**/
-  /*  if (!fgets(buffer, MAX, stdin)) {*/
-  /*    printf("Read error. Exiting...\n");*/
-  /*    return 1;*/
-  /*  }*/
-  /**/
-  /*  buffer[strcspn(buffer, "\n")] = '\0';*/
-  /**/
-  /*  for (char *ptr = buffer; *ptr != '\0'; ptr++) {*/
-  /*    if (*ptr != 'a' && *ptr != 'b') {*/
-  /*      valid = false;*/
-  /*      rewind(stdin);*/
-  /*      break;*/
-  /*    }*/
-  /*  }*/
-  /**/
-  /*  if (!valid) printf("Invalid string. Try again: ");*/
-  /*  else break;*/
-  /*}*/
-  /**/
-  /*printf("Entered string: %s\n", buffer);*/
+  if (accepted)
+    printf("String '%s' accepted.\n", input);
+  else
+    printf("String '%s' rejected.\n", input);
 
   return 0;
 }
