@@ -21,22 +21,29 @@ typedef enum {
 } State;
 
 bool is_delimiter(char ch) {
-  const char delimiters[] = "+-*/=(){}[]%?:|&";
+  const char delimiters[] = "+-*/=(){}[]%?:|&,;";
   return strchr(delimiters, ch) != NULL;
 }
 
 int main() {
-  char filename[] = "input.txt";
+  char input_filename[] = "input.txt";
+  char output_filename[] = "output.txt";
+  FILE *input_file = fopen(input_filename, "r");
+  FILE *output_file = fopen(output_filename, "w");
 
-  FILE *file = fopen(filename, "r");
-  if (file == NULL) {
-    perror("File open error. Exiting...\n");
+  if (input_file == NULL) {
+    perror("Failed to open input file. Exiting...\n");
     return EXIT_FAILURE;
+  }
+
+  if (output_file == NULL) {
+      perror("Failed to open output file. Exiting...\n");
+      return EXIT_FAILURE;
   }
 
   char line[MAX_COLS];
 
-  while (fgets(line, sizeof(line), file)) {
+  while (fgets(line, sizeof(line), input_file)) {
     int col = 0;
     int line_len = strlen(line);
     char lexeme[MAX_COLS] = {0};
@@ -83,6 +90,7 @@ int main() {
           }
           else if (is_delimiter(ch)) {
             lexeme[strlen(lexeme)] = ch;
+            lexeme[strlen(lexeme)] = ' ';
             state = in_delimiter;
           }
           else if (!isspace(ch)) {
@@ -93,8 +101,6 @@ int main() {
 
         case in_delimiter:
           if (!is_delimiter(ch)) {
-            lexeme[strlen(lexeme)] = ' ';
-            state = in_token;
             if (!isspace(ch)) {
               lexeme[strlen(lexeme)] = ch;
               state = in_token;
@@ -103,7 +109,8 @@ int main() {
               state = in_whitespace;
             }
           }
-          else {
+          else { // when current char is a delim
+            lexeme[strlen(lexeme)] = ' ';
             lexeme[strlen(lexeme)] = ch;
           }
           break;
@@ -123,13 +130,10 @@ int main() {
     }
 
     if (strlen(lexeme) > 0) {
-      printf("%s\n", lexeme);
+      fprintf(output_file, "%s\n", lexeme);
     }
   }
 
-
-  fclose(file);
+  fclose(input_file);
   return 0;
-
-
 }

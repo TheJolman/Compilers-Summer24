@@ -1,7 +1,6 @@
 //declare variables
 int num1, num2,   num3 ,t;
 
-
 //init variables
 num1 =13; num2= 55 ;
     num3  =   17  ;
@@ -9,5 +8,5 @@ num1 =13; num2= 55 ;
 cin>> t ;
 
 //compute ...
-t=  num * num2 -t//compute new val for t
-num1 = num1+t //compute new val for num1
+t=  num * num2 -t;//compute new val for t
+num1 = num1+t; //compute new val for num1
