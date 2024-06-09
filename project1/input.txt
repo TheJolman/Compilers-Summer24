@@ -10,3 +10,4 @@ cin>> t ;
 //compute ...
 t=  num * num2 -t;//compute new val for t
 num1 = num1+t; //compute new val for num1
+i++;

@@ -5,7 +5,6 @@
 
 #define MAX_TOKEN_LENGTH 100
 
-// my formattting is inconsistent mb
 typedef enum {
   RESERVED_WORD,
   IDENTIFIER,

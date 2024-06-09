@@ -4,3 +4,4 @@ num3 = 17 ;
 cin>> t ;
 t = num * num2 - t ;
 num1 = num1 +t ;
+i + + ;
