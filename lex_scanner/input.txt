@@ -1,0 +1,8 @@
+uint num = 5;
+
+/* this is a comment */ 
+
+int main() {
+  string something = "hi mom";
+  return (somethin == "hi mom");
+}
