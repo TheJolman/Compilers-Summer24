@@ -11,8 +11,11 @@
 #include <string.h>
 #include <stdio.h>
 #include <ctype.h>
+#include <stdlib.h>
 
 #define MAX_COLS 1024
+#define INITIAL_SIZE 100
+#define GROWTH_FACTOR 2
 typedef unsigned uint;
 
 typedef enum {
@@ -40,7 +43,7 @@ typedef enum {
   Num_Possible_Inputs
 } Input;
 
-const int transition_table[Num_States][Num_Possible_Inputs] = {
+const unsigned char transition_table[Num_States][Num_Possible_Inputs] = {
                       /* Letter, Digit, Space, Punct, /,  * */
   /* Start */     {InIdentifier, InNumber,     Start,         FoundPunctuation, FoundSlash,    FoundPunctuation},
   /* InId */      {InIdentifier, InIdentifier, EndIdentifier, EndIdentifier,    EndIdentifier, EndIdentifier},
@@ -71,26 +74,42 @@ int main(void) {
     return 1;
   }
 
-  char line[MAX_COLS];
-
-  while (fgets(line, sizeof(line), input_file)) {
-    uint col = 0;
-    uint line_len = strlen(line);
-    char lexeme[MAX_COLS] = {0};
-    State state = Start;
-    Input input;
-    
-    
-    while (col < line_len) {
-      char ch = line[col];
-
-      printf("%c", ch);
-
-      state = transition_table[state][input];
-
-      col++;
-    }
+  char *str = (char *)malloc(INITIAL_SIZE * sizeof(char));
+  if (!str) {
+    fprintf(stderr, "Failed to allocate memory...\n");
+    fclose(input_file);
+    return 1;
   }
+
+
+  /*char ch;*/
+  /*char lexeme[MAX_COLS] = {0};*/
+  /*State state = Start;*/
+  /*Input input;*/
+
+  size_t size = INITIAL_SIZE;
+  size_t length = 0;
+  int ch;
+
+  while ((ch = fgetc(input_file)) != EOF) {
+    if(length + 1 >= size) {
+      size *= GROWTH_FACTOR;
+      str = (char *)realloc(str, size * sizeof(char));
+      if (!str) {
+        fprintf(stderr, "Failed to reallocate memory...\n");
+        fclose(input_file);
+        return 1;
+      }
+    }
+    str[length++] = (char)ch;
+  }
+
+
+  str[length] = '\0';
+  printf("%s", str);
+  free(str);
+  putchar('\n');
+  fclose(input_file);
 
   return 0;
 }
