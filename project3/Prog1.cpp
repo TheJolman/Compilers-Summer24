@@ -7,9 +7,9 @@
 #include <map>
 #include <iostream>
 #include <string>
-#include <stack>
-#include <vector>
+#include <vector> // using as stack
 #include <cctype> // std::cctype
+#include <iterator> // std::distance
 #include <algorithm>
 
 const std::map<char, std::map<char, std::string>> parse_table = {
@@ -20,23 +20,27 @@ const std::map<char, std::map<char, std::string>> parse_table = {
   {'G', {{'&', "%"}, {'%', "%TG"}, {')', "@"}, {'$', "@"}}},
   {'F', {{'t', "tH"}, {'f', "fH"}, {'=', "@"}, {'!', "@"}}},
   {'H', {{'<', "<TH"}, {'>', ">TH"}, {'=', "@"}, {'!', "@"}}},
-  {'T', {{'t', "T"}, {'f', "F"}}},
+  {'T', {{'t', "t"}, {'f', "f"}}},
 };
 
-void print_stack(const std::stack<char> &);
-void push_string(std::stack<char> &, const std::string &);
+void print_stack(const std::vector<char> &);
+void push_string(std::vector<char> &, const std::string &);
+void print_trace(std::string &, std::string::iterator);
 
 int main() {
 
   std::string input;
-  std::stack<char> stack;
-  stack.emplace('$');
-  stack.emplace('S');
+  std::string trace = "";
+  std::vector<char> stack = {};
+  stack.push_back('$');
+  stack.push_back('S');
   std::cout << "Enter input string: ";
   std::getline(std::cin, input);
 
   const std::string terminals = "tf&%<>()=!$ ";
-  // first check has any invalid nonterms
+  /* First check has any invalid nonterms.
+   * This if statements uses std::any_of with a lambda function to check if any characters 
+   * from the input string aren't in the list of allowed terminals */
   if (std::any_of(input.begin(), input.end(), 
         [&terminals](char ch) {
         return terminals.find(ch) == std::string::npos; })) {
@@ -51,8 +55,9 @@ int main() {
   print_stack(stack);
 
   // const iterator to string
-  auto curr_symbol = input.cbegin(); 
-  std::cout << "First symbol: " << *curr_symbol << "\n";
+  auto curr_symbol = input.begin(); 
+  std::cout << "Trace:\n";
+  print_trace(input, curr_symbol);
   int iteration = 0;
 
 
@@ -65,15 +70,18 @@ int main() {
       curr_symbol++;
     }
 
-    if (*curr_symbol == stack.top()) {
+    if (*curr_symbol == stack.back()) {
       std::cout << "Popping stack and incrementing input iterator...\n";
-      stack.pop();
-      print_stack(stack);
+      trace.push_back(stack.back());
+      stack.pop_back();
       curr_symbol++;
-      continue;
+      std::cout << "Trace:\n";
+      print_trace(input, curr_symbol);
+      print_stack(stack);
+      continue; // use continue since using if else the whole way thru is hard
       // else if top of stack is terminal 
       // (not the same terminal currently in the input buffer)
-    } else if (terminals.find(stack.top()) != std::string::npos) {
+    } else if (terminals.find(stack.back()) != std::string::npos) {
       // make better error messaging
       print_stack(stack);
       std::cerr << "Non-matching terminal '" << *curr_symbol << "' found at top of stack. Terminating...\n";
@@ -81,50 +89,56 @@ int main() {
       
     }
     // const iterator to the column (nonterminal lhs) of parse table
-    auto col = parse_table.find(stack.top());
+    auto col = parse_table.find(stack.back());
     if (col != parse_table.end()) {
       if (col->second.find(*curr_symbol) == col->second.end()) { // if at an error entry
-        std::cerr << "Error condition in parse table accessed. Terminating...\n";
+        std::cerr << "No table entry for [" << stack.back() << ", " << *curr_symbol <<
+          "]. Terminating...\n";
         exit(2);
       }
     } else {
-      std::cerr << "Invalid lhs '" << stack.top() << "' found. Terminating...\n";
+      std::cerr << "Invalid lhs '" << stack.back() << "' found. Terminating...\n";
       exit(2);
     }
 
     // table entry must exist at this point
-    std::string production = parse_table.at(stack.top()).at(*curr_symbol);
-    std::cout << "Using production: " << stack.top() << "->" << production << "\n";
-    stack.pop();
-    std::cout << "Popping production from stack...\n";
-    print_stack(stack);
+    std::string production = parse_table.at(stack.back()).at(*curr_symbol);
+    std::cout << "Using production: " << stack.back() << "->" << production << "\n";
+    stack.pop_back();
+    /*std::cout << "Popping production from stack...\n";*/
+    /*print_stack(stack);*/
     push_string(stack, production);
-    std::cout << "Production from table pushed to stack...\n";
+    /*std::cout << "Production from table pushed to stack...\n";*/
     print_stack(stack);
-
-
+    std::cout << "Trace:\n";
+    print_trace(input, curr_symbol);
   }
 
   std::cout << "Input string " << input << " acceppted!\n";
   return 0;
 }
 
-void print_stack(const std::stack<char> &stack) {
-  /*auto stack_copy = std::stack(stack);*/
-  std::stack<char> stack_copy = stack;
-  std::vector<char> vec = {};
+void print_stack(const std::vector<char> &stack) {
   std::cout << "Stack: ";
-  while (!stack_copy.empty()) {
-    std::cout << stack_copy.top();
-    stack_copy.pop();
+  for (auto &it : stack) {
+    std::cout << it;
   }
-  std::cout << "\n       ^---top\n";
+  std::cout << "\n   top--->\n";
 }
 
-void push_string(std::stack<char> &stack, const std::string &str) {
+void push_string(std::vector<char> &stack, const std::string &str) {
   // string const_reverse_iterator
   for (auto rit = str.crbegin(); rit != str.crend(); ++rit) {
     if (*rit != '@')
-      stack.push(*rit);
+      stack.push_back(*rit);
   }
+}
+
+void print_trace(std::string &str, std::string::iterator it) {
+  // print the string with a '^' indicating where the iterator currently is
+  std::cout << str << "\n";
+
+  auto pos = std::distance(str.begin(), it);
+
+  std::cout << std::string(pos, ' ') << "^\n";
 }
