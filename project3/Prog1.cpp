@@ -4,17 +4,19 @@
  * 24 June 2024
  */
 
-#include <map>
+#include <map> // for parse table
 #include <iostream>
 #include <string>
 #include <vector> // using as stack
-#include <cctype> // std::cctype
+#include <cctype> // std::isspace
 #include <iterator> // std::distance
-#include <algorithm>
+#include <algorithm> // std::any_of
 
-const std::map<char, std::map<char, std::string>> parse_table = {
+using ParseTable = std::map<char, std::map<char, std::string>>;
+
+const ParseTable parse_table = {
   // E' = G, F'= H
-  // ε = 
+  // ε = @
   {'S', {{'t', "F=E"}, {'f', "F+E"}}},
   {'E', {{'t', "F!G"}, {'f', "F!G"}}},
   {'G', {{'&', "%"}, {'%', "%TG"}, {')', "@"}, {'$', "@"}}},
@@ -27,7 +29,7 @@ void print_stack(const std::vector<char> &);
 void push_string(std::vector<char> &, const std::string &);
 void print_trace(std::string &, std::string::iterator);
 
-int main() {
+int main(void) {
 
   std::string input;
   std::string trace = "";
@@ -71,7 +73,7 @@ int main() {
     }
 
     if (*curr_symbol == stack.back()) {
-      std::cout << "Popping stack and incrementing input iterator...\n";
+      std::cout << "Popping nonterm on stack top and incrementing input iterator...\n";
       trace.push_back(stack.back());
       stack.pop_back();
       curr_symbol++;
