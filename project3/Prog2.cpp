@@ -11,6 +11,7 @@
 #include <algorithm>
 
 using StateTable = std::map<std::string, std::map<std::string, std::string>>;
+using VecStack = std::vector<std::string>;
 
 // this might be more readable than how I did it in Prog1
 StateTable create_state_table() {
@@ -52,7 +53,7 @@ StateTable create_state_table() {
 
 
 void print_state_table(const StateTable &);
-void print_stack(const std::vector<char> &);
+void print_stack(const VecStack &);
 void push_string(std::vector<char> &, const std::string &);
 void print_trace(std::string &, std::string::iterator);
 std::string get_table_action(const StateTable &, int, const std::string &);
@@ -64,7 +65,7 @@ int main(void) {
 
   std::string input;
   std::string trace = "";
-  std::vector<std::string> stack = {};
+  VecStack stack = {};
   stack.push_back("0");
   std::cout << "Enter input string: ";
   std::getline(std::cin, input);
@@ -88,7 +89,6 @@ int main(void) {
 
   // const iterator to string
   auto curr_symbol = input.begin(); 
-  std::cout << "Trace:\n";
   print_trace(input, curr_symbol);
   int iteration = 0;
   return 0;
@@ -108,12 +108,13 @@ void print_state_table(const StateTable &table) {
   }
 }
 
-void print_stack(const std::vector<char> &stack) {
+void print_stack(const VecStack &stack) {
   std::cout << "Stack: ";
   for (auto &it : stack) {
-    std::cout << it;
+    std::cout << it << " ";
   }
-  std::cout << "\n   top--->\n";
+  /*std::cout << "\n   top--->\n";*/
+  std::cout << "\n";
 }
 
 void push_string(std::vector<char> &stack, const std::string &str) {
@@ -126,11 +127,13 @@ void push_string(std::vector<char> &stack, const std::string &str) {
 
 void print_trace(std::string &str, std::string::iterator it) {
   // print the string with a '^' indicating where the iterator currently is
+  std::string trace_literal = "Trace: ";
+  std::cout << trace_literal;
   std::cout << str << "\n";
 
   auto pos = std::distance(str.begin(), it);
 
-  std::cout << std::string(pos, ' ') << "^\n";
+  std::cout << std::string(pos + trace_literal.length(), ' ') << "^\n";
 }
 
 std::string get_table_action(const StateTable &table, std::string state, const std::string &symbol) {
