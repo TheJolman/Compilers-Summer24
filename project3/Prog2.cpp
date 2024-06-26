@@ -4,13 +4,12 @@
  * 24 June 2024
  */
 
+#include <algorithm>
+#include <cctype> // std::cctype
 #include <iostream>
 #include <map>
 #include <string>
 #include <vector>
-#include <algorithm>
-#include <cctype> // std::cctype
-#include <cassert>
 
 using StateTable = std::map<std::string, std::map<std::string, std::string>>;
 using VecStack = std::vector<std::string>;
@@ -24,13 +23,16 @@ StateTable create_state_table() {
 
   table["1"] = {{"+", "S6"}, {"-", "S7"}, {"$", "acc"}};
 
-  table["2"] = {{"+", "R3"}, {"-", "R3"}, {"*", "S8"}, {"/", "S9"}, {")", "R3"}, {"$", "R3"}};
+  table["2"] = {{"+", "R3"}, {"-", "R3"}, {"*", "S8"},
+                {"/", "S9"}, {")", "R3"}, {"$", "R3"}};
 
-  table["3"] = {{"+", "R6"}, {"-", "R6"}, {"*", "R6"}, {"/", "R6"}, {")", "R6"}, {"$", "R6"}};
+  table["3"] = {{"+", "R6"}, {"-", "R6"}, {"*", "R6"},
+                {"/", "R6"}, {")", "R6"}, {"$", "R6"}};
 
   table["4"] = {{"i", "S5"}, {"(", "S4"}, {"E", "10"}, {"T", "2"}, {"F", "3"}};
 
-  table["5"] = {{"+", "R8"}, {"-", "R8"}, {"*", "R8"}, {"/", "R8"}, {")", "R8"}, {"$", "R8"}};
+  table["5"] = {{"+", "R8"}, {"-", "R8"}, {"*", "R8"},
+                {"/", "R8"}, {")", "R8"}, {"$", "R8"}};
 
   table["6"] = {{"i", "S5"}, {"(", "S4"}, {"T", "11"}, {"F", "3"}};
 
@@ -42,16 +44,21 @@ StateTable create_state_table() {
 
   table["10"] = {{"+", "S6"}, {"-", "S7"}, {")", "S15"}};
 
-  table["11"] = {{"+", "R1"}, {"-", "R1"}, {"*", "S8"}, {"/", "S9"}, {")", "R1"}, {"$", "R1"}};
+  table["11"] = {{"+", "R1"}, {"-", "R1"}, {"*", "S8"},
+                 {"/", "S9"}, {")", "R1"}, {"$", "R1"}};
 
-  table["12"] = {{"+", "R2"}, {"-", "R2"}, {"*", "S8"}, {"/", "S9"}, {")", "R2"}, {"$", "R2"}};
+  table["12"] = {{"+", "R2"}, {"-", "R2"}, {"*", "S8"},
+                 {"/", "S9"}, {")", "R2"}, {"$", "R2"}};
 
-  table["13"] = {{"+", "R4"}, {"-", "R4"}, {"*", "R4"}, {"/", "R4"}, {")", "R4"}, {"$", "R4"}};
+  table["13"] = {{"+", "R4"}, {"-", "R4"}, {"*", "R4"},
+                 {"/", "R4"}, {")", "R4"}, {"$", "R4"}};
 
-  table["14"] = {{"+", "R5"}, {"-", "R5"}, {"*", "R5"}, {"/", "R5"}, {")", "R5"}, {"$", "R5"}};
+  table["14"] = {{"+", "R5"}, {"-", "R5"}, {"*", "R5"},
+                 {"/", "R5"}, {")", "R5"}, {"$", "R5"}};
 
-  table["15"] = {{"+", "R7"}, {"-", "R7"}, {"*", "R7"}, {"/", "R7"}, {")", "R7"}, {"$", "R7"}};
-  
+  table["15"] = {{"+", "R7"}, {"-", "R7"}, {"*", "R7"},
+                 {"/", "R7"}, {")", "R7"}, {"$", "R7"}};
+
   return table;
 }
 
@@ -72,9 +79,9 @@ void print_state_table(const StateTable &);
 void print_stack(const VecStack &);
 void push_string(std::vector<char> &, const std::string &);
 void print_trace(std::string &, std::string::iterator);
-std::string get_table_action(const StateTable &, const std::string &, const std::string &);
+std::string get_table_action(const StateTable &, const std::string &,
+                             const std::string &);
 void reduce(const StateTable &, VecStack &, const Production &);
-
 
 int main(void) {
   StateTable state_table = create_state_table();
@@ -92,15 +99,15 @@ int main(void) {
 
   const std::string terminals = "i+-*/()$ ";
   /* First check has any invalid nonterms.
-   * This if statements uses std::any_of with a lambda function to check if any characters 
-   * from the input string aren't in the list of allowed terminals */
-  if (std::any_of(input.begin(), input.end(), 
-        [&terminals](char ch) {
-        return terminals.find(ch) == std::string::npos; })) {
-    std::cerr << "input string contains one or more invalid characters. Terminating...\n";
+   * This if statements uses std::any_of with a lambda function to check if any
+   * characters from the input string aren't in the list of allowed terminals */
+  if (std::any_of(input.begin(), input.end(), [&terminals](char ch) {
+        return terminals.find(ch) == std::string::npos;
+      })) {
+    std::cerr << "input string contains one or more invalid characters. "
+                 "Terminating...\n";
     exit(1);
   }
-
 
   if (input.back() != '$')
     input.push_back('$');
@@ -108,7 +115,7 @@ int main(void) {
   print_stack(stack);
 
   // const iterator to string
-  auto curr_symbol = input.begin(); 
+  auto curr_symbol = input.begin();
   print_trace(input, curr_symbol);
 
   // vars used in loop
@@ -138,45 +145,46 @@ int main(void) {
       table_action = get_table_action(state_table, state, incoming_token);
 
       switch (table_action.front()) {
-        case 'S':
-          /*std::cout << "in case 'S'\n";*/
-          // shift
-          stack.push_back(incoming_token);
-          new_state = table_action.substr(1);
-          stack.push_back(new_state); // append state num 
-          curr_symbol++;
-          std::cout << "Pushed " << incoming_token << " and " << new_state << " to stack.\n";
-          break;
-        case 'R':
-          /*std::cout << "in case 'R'\n";*/
-          // reduce
-          /*std::cout << "before converting rule_num to int\n";*/
-          rule_num = std::stoi(table_action.substr(1)) - 1;
-          /*std::cout << "after converting rule_num to int\n";*/
-          if (grammar.size() > rule_num) {
-            production = grammar[rule_num];
-          } else {
-            std::cerr << "rule_num out of bounds.\n";
-            exit(1);
-          }
-          std::cout << "Using rule " << rule_num << " which is " << production.first <<
-            "->" << production.second << "\n";
-          reduce(state_table, stack, production);
-          break;
-        case 'a':
-          // accept state
-          std::cout << "String accepted!\n";
-          exit(0);
-        default: 
-          // error msg
-          std::cout << "Error: something went wrong bruv.\n";
-          print_stack(stack);
-          print_trace(input, curr_symbol);
-          exit(1); 
+      case 'S':
+        /*std::cout << "in case 'S'\n";*/
+        // shift
+        stack.push_back(incoming_token);
+        new_state = table_action.substr(1);
+        stack.push_back(new_state); // append state num
+        curr_symbol++;
+        std::cout << "Pushed " << incoming_token << " and " << new_state
+                  << " to stack.\n";
+        break;
+      case 'R':
+        /*std::cout << "in case 'R'\n";*/
+        // reduce
+        /*std::cout << "before converting rule_num to int\n";*/
+        rule_num = std::stoi(table_action.substr(1)) - 1;
+        /*std::cout << "after converting rule_num to int\n";*/
+        if (grammar.size() > rule_num) {
+          production = grammar[rule_num];
+        } else {
+          std::cerr << "rule_num out of bounds.\n";
+          exit(1);
+        }
+        std::cout << "Using rule " << rule_num << " which is "
+                  << production.first << "->" << production.second << "\n";
+        reduce(state_table, stack, production);
+        break;
+      case 'a':
+        // accept state
+        std::cout << "String accepted!\n";
+        exit(0);
+      default:
+        // error msg
+        std::cout << "Error: something went wrong bruv.\n";
+        print_stack(stack);
+        print_trace(input, curr_symbol);
+        exit(1);
       }
     }
 
-  } catch (const std::bad_alloc& e) {
+  } catch (const std::bad_alloc &e) {
     std::cerr << "mem allocation failed: " << e.what() << "\n";
     std::cerr << "stack size: " << stack.size() << "\n";
     print_trace(input, curr_symbol);
@@ -185,14 +193,13 @@ int main(void) {
   return 0;
 }
 
-
 /* Functions definitions */
 
 void print_state_table(const StateTable &table) {
   // structured bindings :O
-  for (const auto& [state, transitions] : table) {
+  for (const auto &[state, transitions] : table) {
     std::cout << "State " << state << ":\n";
-    for (const auto& [symbol, action] : transitions) {
+    for (const auto &[symbol, action] : transitions) {
       std::cout << "  " << symbol << " -> " << action << "\n";
     }
     std::cout << "\n";
@@ -227,7 +234,8 @@ void print_trace(std::string &str, std::string::iterator it) {
   std::cout << std::string(pos + trace_literal.length(), ' ') << "^\n";
 }
 
-std::string get_table_action(const StateTable &table, const std::string &state, const std::string &symbol) {
+std::string get_table_action(const StateTable &table, const std::string &state,
+                             const std::string &symbol) {
   /*std::cout << "in get_table_action\n";*/
   auto state_it = table.find(state);
   if (state_it != table.end()) {
@@ -237,16 +245,18 @@ std::string get_table_action(const StateTable &table, const std::string &state, 
       return symbol_it->second;
     }
   }
-  std::cout << "Error: No table entry for [" << state << ", " << symbol << "]\n";
+  std::cout << "Error: No table entry for [" << state << ", " << symbol
+            << "]\n";
   exit(1);
   /*return "Error";*/
 }
 
-void reduce(const StateTable &table, VecStack &stack, const Production &production) {
-  /* If the RHS contains k symbols, pop the top k state-symbol pairs off the stack
-   * Note the state on top of the stack
-   * Enter go-to part of the table at [stack.back(), lhs], then push lhs and 
-   * the entry found in the table to the stack */
+void reduce(const StateTable &table, VecStack &stack,
+            const Production &production) {
+  /* If the RHS contains k symbols, pop the top k state-symbol pairs off the
+   * stack Note the state on top of the stack Enter go-to part of the table at
+   * [stack.back(), lhs], then push lhs and the entry found in the table to the
+   * stack */
   std::cout << "in reduce\n";
   auto [lhs, rhs] = production;
   size_t elements_to_erase = 2 * rhs.length();
@@ -256,5 +266,4 @@ void reduce(const StateTable &table, VecStack &stack, const Production &producti
   stack.push_back(lhs);
   std::cout << "pushing: " << table_entry << "\n";
   stack.push_back(table_entry);
-
 }
