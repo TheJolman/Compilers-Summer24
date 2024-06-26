@@ -56,7 +56,7 @@ void print_state_table(const StateTable &);
 void print_stack(const VecStack &);
 void push_string(std::vector<char> &, const std::string &);
 void print_trace(std::string &, std::string::iterator);
-std::string get_table_action(const StateTable &, int, const std::string &);
+std::string get_table_action(const StateTable &, const std::string &, const std::string &);
 
 
 int main(void) {
@@ -91,6 +91,36 @@ int main(void) {
   auto curr_symbol = input.begin(); 
   print_trace(input, curr_symbol);
   int iteration = 0;
+  std::string state;
+  std::string incoming_token;
+  std::string table_action;
+
+  while (!stack.empty()) {
+    iteration++;
+    std::cout << "\n---Currently on iteration: " << iteration << "---\n";
+
+    // this needs to ignore whitespace to work
+    while (std::isspace(*curr_symbol)) {
+      curr_symbol++;
+    }
+
+    state = stack.back();
+    incoming_token = *curr_symbol;
+    table_action = get_table_action(state_table, state, incoming_token);
+
+    switch (table_action.front()) {
+      case 's': // shift
+               break;
+      case 'r': // reduce
+               break;
+      case 'a': // accept state
+               break;
+      default: exit(1);
+    }
+
+    print_stack(stack);
+    print_trace(input, curr_symbol);
+  }
   return 0;
 }
 
@@ -136,7 +166,7 @@ void print_trace(std::string &str, std::string::iterator it) {
   std::cout << std::string(pos + trace_literal.length(), ' ') << "^\n";
 }
 
-std::string get_table_action(const StateTable &table, std::string state, const std::string &symbol) {
+std::string get_table_action(const StateTable &table, const std::string &state, const std::string &symbol) {
   auto state_it = table.find(state);
   if (state_it != table.end()) {
     auto symbol_it = state_it->second.find(symbol);
